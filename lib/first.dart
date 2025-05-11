@@ -34,6 +34,7 @@ class _FirstPageState extends State<FirstPage> {
   int _currentPage = 0;
   double eggRate = 1.0;
   double targetRate = 4.7;
+  double neccEggRate = 4.7; // New variable for necc_eggrate
   String? _profileImageUrl;
   bool _isLoadingProfileImage = true;
   DateTime? _lastUpdated;
@@ -99,6 +100,7 @@ class _FirstPageState extends State<FirstPage> {
 
       await Future.wait([
         _loadEggRate(),
+        _loadNeccEggRate(), // Fetch necc_eggrate for small container
         _loadCreditData(),
         if (_userRole == 'customer') _loadCrateQuantity(),
       ]);
@@ -107,6 +109,7 @@ class _FirstPageState extends State<FirstPage> {
       setState(() {
         _isLoadingProfileImage = false;
         targetRate = 4.7;
+        neccEggRate = 4.7; // Default for necc_eggrate
         creditBalance = 0.0;
         crateQuantity = 0.0;
         transactions = [];
@@ -265,6 +268,31 @@ class _FirstPageState extends State<FirstPage> {
     animateRate();
   }
 
+  Future<void> _loadNeccEggRate() async {
+    try {
+      final response = await _supabase
+          .from('necc_eggrate')
+          .select('rate')
+          .eq('id', 1)
+          .maybeSingle();
+
+      if (response != null && response['rate'] != null) {
+        setState(() {
+          neccEggRate = response['rate'].toDouble();
+        });
+      } else {
+        setState(() {
+          neccEggRate = 4.7; // Default fallback rate
+        });
+      }
+    } catch (e) {
+      print('Error fetching necc egg rate: $e');
+      setState(() {
+        neccEggRate = 4.7; // Default fallback rate
+      });
+    }
+  }
+
   void _startAutoScroll() {
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 3));
@@ -302,6 +330,7 @@ class _FirstPageState extends State<FirstPage> {
   Future<void> _onRefresh() async {
     await Future.wait([
       _loadEggRate(),
+      _loadNeccEggRate(), // Refresh necc_eggrate for small container
       _loadCreditData(),
       if (_userRole == 'customer') _loadCrateQuantity(),
     ]);
@@ -382,20 +411,20 @@ class _FirstPageState extends State<FirstPage> {
                             ),
                           );
                         },
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(size.width * 0.03),
-                          ),
-                          elevation: 6,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: size.width * 0.04,
-                                vertical: size.height * 0.01),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(size.width * 0.03),
+                              ),
+                              elevation: 6,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: size.width * 0.04,
+                                    vertical: size.height * 0.01),
+                                child: Text(
                                   'Credit: ₹${creditBalance.toStringAsFixed(2)}',
                                   style: Theme.of(context)
                                       .textTheme
@@ -407,9 +436,23 @@ class _FirstPageState extends State<FirstPage> {
                                       ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (_userRole == 'customer')
-                                  Text(
-                                    'Crates: ${crateQuantity.toStringAsFixed(0)}',
+                              ),
+                            ),
+                            if (_userRole == 'customer')
+                              SizedBox(height: size.height * 0.01),
+                            if (_userRole == 'customer')
+                              Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(size.width * 0.03),
+                                ),
+                                elevation: 6,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: size.width * 0.04,
+                                      vertical: size.height * 0.01),
+                                  child: Text(
+                                    'Crates: ${crateQuantity.toStringAsFixed(0)} = ${crateQuantity * 35}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge!
@@ -420,9 +463,9 @@ class _FirstPageState extends State<FirstPage> {
                                         ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                              ],
-                            ),
-                          ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       GestureDetector(
@@ -492,16 +535,48 @@ class _FirstPageState extends State<FirstPage> {
                 SizedBox(height: size.height * 0.015),
                 _buildDotsIndicator(),
                 SizedBox(height: size.height * 0.03),
-                Text(
-                  _userRole == 'wholesale'
-                      ? 'Wholesale Egg Rate In Bengaluru'
-                      : 'NECC Egg Rate In Bengaluru',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        fontWeight: FontWeight.w800,
-                        fontSize: size.width * 0.08,
-                        color: const Color(0xFF0288D1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _userRole == 'wholesale'
+                            ? 'Wholesale Egg Rate In Bengaluru'
+                            : 'NECC Egg Rate In Bengaluru',
+                        textAlign: TextAlign.center,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: size.width * 0.08,
+                                  color: const Color(0xFF0288D1),
+                                ),
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    ),
+                    SizedBox(width: size.width * 0.02),
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(size.width * 0.02),
+                      ),
+                      elevation: 4,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: size.width * 0.03,
+                            vertical: size.height * 0.02),
+                        child: Text(
+                          '₹${neccEggRate.toStringAsFixed(2)}', // Use neccEggRate
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
+                              .copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: const Color.fromARGB(255, 0, 134, 224),
+                                fontSize: size.width * 0.04,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: size.height * 0.01),
                 AnimatedScale(
@@ -556,7 +631,7 @@ class _FirstPageState extends State<FirstPage> {
                         ),
                         const TextSpan(
                           text:
-                              ", we take pride in delivering the finest quality eggs to your doorstep.....",
+                              ", we take pride in delivering the finest quality eggs to your shop.....",
                         ),
                       ],
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
