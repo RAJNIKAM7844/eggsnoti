@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> {
       title: "HMS Egg Distributions",
       theme: ThemeData(
         fontFamily: 'Roboto',
-        primarySwatch: Colors.orange,
+        primarySwatch: Colors.blue,
       ),
       initialRoute: widget.isLoggedIn
           ? '/home'

@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.all(size.width * 0.02),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFF6F00) : Colors.transparent,
+          color: isSelected ? const Color(0xFF0288D1) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -104,8 +104,8 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(Icons.home_outlined, 'Home', 0),
-                _buildNavItem(Icons.people_outline, 'Contact', 1),
                 _buildNavItem(Icons.info_outline, 'About', 2),
+                _buildNavItem(Icons.people_outline, 'Contact', 1),
                 _buildNavItem(Icons.person_outline, 'Profile', 3),
               ],
             ),

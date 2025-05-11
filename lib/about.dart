@@ -73,7 +73,7 @@ class AboutPage extends StatelessWidget {
                             TextSpan(
                               text: "HMS EGG DISTRIBUTORS",
                               style: TextStyle(
-                                color: const Color(0xFFFF6F00),
+                                color: const Color.fromARGB(255, 255, 14, 14),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

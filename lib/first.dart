@@ -38,7 +38,7 @@ class _FirstPageState extends State<FirstPage> {
   bool _isLoadingProfileImage = true;
   DateTime? _lastUpdated;
   double creditBalance = 0.0;
-  double crateQuantity = 0.0; // Added to store crate quantity
+  double crateQuantity = 0.0;
   List<Transaction> transactions = [];
   String? _userRole;
   final List<String> images = [
@@ -100,8 +100,7 @@ class _FirstPageState extends State<FirstPage> {
       await Future.wait([
         _loadEggRate(),
         _loadCreditData(),
-        if (_userRole == 'customer')
-          _loadCrateQuantity(), // Fetch crates only for customer
+        if (_userRole == 'customer') _loadCrateQuantity(),
       ]);
     } catch (e) {
       print('Error loading user role or data: $e');
@@ -330,7 +329,7 @@ class _FirstPageState extends State<FirstPage> {
             height: size.height * 0.01,
             decoration: BoxDecoration(
               color: _currentPage == index
-                  ? const Color(0xFFFF6F00)
+                  ? const Color.fromARGB(255, 0, 79, 188)
                   : const Color(0xFF757575),
               borderRadius: BorderRadius.circular(size.width * 0.01),
             ),
@@ -354,12 +353,11 @@ class _FirstPageState extends State<FirstPage> {
       body: CustomBackground(
         child: RefreshIndicator(
           onRefresh: _onRefresh,
-          color: const Color(0xFFFF6F00),
+          color: const Color.fromARGB(255, 30, 0, 255),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-                SizedBox(height: size.height * 0.04),
                 Padding(
                   padding: EdgeInsets.all(size.width * 0.04),
                   child: Row(
@@ -463,7 +461,6 @@ class _FirstPageState extends State<FirstPage> {
                     ],
                   ),
                 ),
-                SizedBox(height: size.height * 0.02),
                 SizedBox(
                   height: size.height * 0.25,
                   child: PageView.builder(
@@ -501,7 +498,8 @@ class _FirstPageState extends State<FirstPage> {
                       : 'NECC Egg Rate In Bengaluru',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        fontSize: size.width * 0.06,
+                        fontWeight: FontWeight.w800,
+                        fontSize: size.width * 0.08,
                         color: const Color(0xFF0288D1),
                       ),
                 ),
@@ -524,8 +522,9 @@ class _FirstPageState extends State<FirstPage> {
                             .textTheme
                             .headlineMedium!
                             .copyWith(
-                              color: const Color(0xFFFF6F00),
-                              fontSize: size.width * 0.08,
+                              fontWeight: FontWeight.w800,
+                              color: const Color.fromARGB(255, 0, 134, 224),
+                              fontSize: size.width * 0.12,
                             ),
                       ),
                     ),
@@ -551,7 +550,8 @@ class _FirstPageState extends State<FirstPage> {
                               ? "HMS EGG DISTRIBUTORS - Wholesale"
                               : "HMS EGG DISTRIBUTORS",
                           style: const TextStyle(
-                              color: Color(0xFFFF6F00),
+                              fontSize: 17,
+                              color: Color.fromARGB(255, 255, 12, 12),
                               fontWeight: FontWeight.bold),
                         ),
                         const TextSpan(
@@ -560,7 +560,7 @@ class _FirstPageState extends State<FirstPage> {
                         ),
                       ],
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontSize: size.width * 0.04,
+                            fontSize: size.width * 0.05,
                             color: const Color(0xFF757575),
                           ),
                     ),
@@ -765,144 +765,6 @@ class _CreditDetailsPageState extends State<CreditDetailsPage> {
     }).toList();
   }
 
-  void _showPaymentDialog() {
-    final TextEditingController amountController = TextEditingController();
-    String? selectedPaymentMode;
-    final List<String> paymentModes = ['Cash', 'UPI', 'Bank Transfer'];
-    final size = MediaQuery.of(context).size;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(widget.userRole == 'wholesale'
-            ? 'Make a Wholesale Payment'
-            : 'Make a Payment'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Amount to Pay (₹)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              SizedBox(height: size.height * 0.02),
-              DropdownButtonFormField<String>(
-                value: selectedPaymentMode,
-                decoration: InputDecoration(
-                  labelText: 'Mode of Payment',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                items: paymentModes.map((mode) {
-                  return DropdownMenuItem<String>(
-                    value: mode,
-                    child: Text(mode),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  selectedPaymentMode = value;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: isLoading
-                ? null
-                : () async {
-                    final amountText = amountController.text.trim();
-                    final amount = double.tryParse(amountText);
-                    if (amount == null || amount <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Please enter a valid amount')),
-                      );
-                      return;
-                    }
-                    if (selectedPaymentMode == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Please select a mode of payment')),
-                      );
-                      return;
-                    }
-                    if (amount > creditBalance) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content:
-                                Text('Amount cannot exceed current balance')),
-                      );
-                      return;
-                    }
-
-                    setState(() {
-                      isLoading = true;
-                    });
-
-                    try {
-                      final userId = _supabase.auth.currentUser?.id;
-                      if (userId == null) {
-                        throw Exception('User not authenticated');
-                      }
-
-                      final transactionsTable = widget.userRole == 'wholesale'
-                          ? 'wholesale_transaction'
-                          : 'transactions';
-
-                      final newBalance = creditBalance - amount;
-                      await _supabase.from(transactionsTable).insert({
-                        'user_id': userId,
-                        'date': DateTime.now().toIso8601String(),
-                        'credit': 0.0,
-                        'paid': amount,
-                        'balance': newBalance,
-                        'mode_of_payment': selectedPaymentMode,
-                      });
-
-                      setState(() {
-                        creditBalance = newBalance;
-                        isLoading = false;
-                      });
-
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Payment recorded successfully')),
-                      );
-                    } catch (e) {
-                      setState(() {
-                        isLoading = false;
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to record payment: $e')),
-                      );
-                    }
-                  },
-            child: isLoading
-                ? CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(const Color(0xFFFF6F00)),
-                  )
-                : const Text('Done'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _supabase.channel('credit_details_user_*').unsubscribe();
@@ -997,7 +859,7 @@ class _CreditDetailsPageState extends State<CreditDetailsPage> {
                             });
                             Navigator.pop(context);
                           },
-                          activeColor: const Color(0xFFFF6F00),
+                          activeColor: const Color(0xFF0288D1),
                         ),
                       ],
                     ),
@@ -1019,7 +881,7 @@ class _CreditDetailsPageState extends State<CreditDetailsPage> {
                         'Apply',
                         style: TextStyle(
                           fontSize: size.width * 0.04,
-                          color: const Color(0xFFFF6F00),
+                          color: const Color(0xFF0288D1),
                         ),
                       ),
                     ),
@@ -1032,7 +894,7 @@ class _CreditDetailsPageState extends State<CreditDetailsPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadCreditData,
-        color: const Color(0xFFFF6F00),
+        color: const Color(0xFF0288D1),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
@@ -1202,10 +1064,17 @@ class _CreditDetailsPageState extends State<CreditDetailsPage> {
                         ),
                         ElevatedButton(
                           onPressed: creditBalance > 0
-                              ? () => _showPaymentDialog()
+                              ? () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Payment methods are yet to be added'),
+                                    ),
+                                  );
+                                }
                               : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6F00),
+                            backgroundColor: const Color(0xFF0288D1),
                             foregroundColor: const Color(0xFFFFFFFF),
                             padding: EdgeInsets.symmetric(
                                 horizontal: size.width * 0.04,
@@ -1239,7 +1108,7 @@ class _CreditDetailsPageState extends State<CreditDetailsPage> {
                   Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          const Color(0xFFFF6F00)),
+                          const Color(0xFF0288D1)),
                     ),
                   )
                 else
