@@ -33,8 +33,9 @@ class _FirstPageState extends State<FirstPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   double eggRate = 1.0;
+  double neccEggRate = 1.0; // Initialize for animation
   double targetRate = 4.7;
-  double neccEggRate = 4.7; // New variable for necc_eggrate
+  double targetNeccRate = 4.7; // Target for necc_eggrate animation
   String? _profileImageUrl;
   bool _isLoadingProfileImage = true;
   DateTime? _lastUpdated;
@@ -43,9 +44,9 @@ class _FirstPageState extends State<FirstPage> {
   List<Transaction> transactions = [];
   String? _userRole;
   final List<String> images = [
-    'assets/eggs1.png',
+    'assets/eggs1.jpg',
     'assets/eggs2.png',
-    'assets/eggs3.png',
+    'assets/eggs3.jpg',
   ];
   final _supabase = Supabase.instance.client;
 
@@ -100,7 +101,7 @@ class _FirstPageState extends State<FirstPage> {
 
       await Future.wait([
         _loadEggRate(),
-        _loadNeccEggRate(), // Fetch necc_eggrate for small container
+        _loadNeccEggRate(),
         _loadCreditData(),
         if (_userRole == 'customer') _loadCrateQuantity(),
       ]);
@@ -109,7 +110,8 @@ class _FirstPageState extends State<FirstPage> {
       setState(() {
         _isLoadingProfileImage = false;
         targetRate = 4.7;
-        neccEggRate = 4.7; // Default for necc_eggrate
+        targetNeccRate = 4.7;
+        neccEggRate = 4.7;
         creditBalance = 0.0;
         crateQuantity = 0.0;
         transactions = [];
@@ -265,7 +267,7 @@ class _FirstPageState extends State<FirstPage> {
         _lastUpdated = null;
       });
     }
-    animateRate();
+    animateRates();
   }
 
   Future<void> _loadNeccEggRate() async {
@@ -278,19 +280,20 @@ class _FirstPageState extends State<FirstPage> {
 
       if (response != null && response['rate'] != null) {
         setState(() {
-          neccEggRate = response['rate'].toDouble();
+          targetNeccRate = response['rate'].toDouble();
         });
       } else {
         setState(() {
-          neccEggRate = 4.7; // Default fallback rate
+          targetNeccRate = 4.7;
         });
       }
     } catch (e) {
       print('Error fetching necc egg rate: $e');
       setState(() {
-        neccEggRate = 4.7; // Default fallback rate
+        targetNeccRate = 4.7;
       });
     }
+    animateRates();
   }
 
   void _startAutoScroll() {
@@ -310,12 +313,24 @@ class _FirstPageState extends State<FirstPage> {
     });
   }
 
-  void animateRate() async {
-    for (double i = 1.0; i <= targetRate; i += 0.01) {
+  void animateRates() async {
+    double step = 0.01;
+    double currentEggRate = 1.0;
+    double currentNeccRate = 1.0;
+
+    while (currentEggRate < targetRate || currentNeccRate < targetNeccRate) {
       await Future.delayed(const Duration(milliseconds: 2));
       if (mounted) {
         setState(() {
-          eggRate = double.parse(i.toStringAsFixed(2));
+          if (currentEggRate < targetRate) {
+            currentEggRate = (currentEggRate + step).clamp(1.0, targetRate);
+            eggRate = double.parse(currentEggRate.toStringAsFixed(2));
+          }
+          if (currentNeccRate < targetNeccRate) {
+            currentNeccRate =
+                (currentNeccRate + step).clamp(1.0, targetNeccRate);
+            neccEggRate = double.parse(currentNeccRate.toStringAsFixed(2));
+          }
         });
       }
     }
@@ -330,7 +345,7 @@ class _FirstPageState extends State<FirstPage> {
   Future<void> _onRefresh() async {
     await Future.wait([
       _loadEggRate(),
-      _loadNeccEggRate(), // Refresh necc_eggrate for small container
+      _loadNeccEggRate(),
       _loadCreditData(),
       if (_userRole == 'customer') _loadCrateQuantity(),
     ]);
@@ -391,6 +406,7 @@ class _FirstPageState extends State<FirstPage> {
                   padding: EdgeInsets.all(size.width * 0.04),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
                         onTap: () {
@@ -411,20 +427,20 @@ class _FirstPageState extends State<FirstPage> {
                             ),
                           );
                         },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(size.width * 0.03),
-                              ),
-                              elevation: 6,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: size.width * 0.04,
-                                    vertical: size.height * 0.01),
-                                child: Text(
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(size.width * 0.03),
+                          ),
+                          elevation: 6,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: size.width * 0.04,
+                                vertical: size.height * 0.01),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
                                   'Credit: ₹${creditBalance.toStringAsFixed(2)}',
                                   style: Theme.of(context)
                                       .textTheme
@@ -436,23 +452,10 @@ class _FirstPageState extends State<FirstPage> {
                                       ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ),
-                            if (_userRole == 'customer')
-                              SizedBox(height: size.height * 0.01),
-                            if (_userRole == 'customer')
-                              Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(size.width * 0.03),
-                                ),
-                                elevation: 6,
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: size.width * 0.04,
-                                      vertical: size.height * 0.01),
-                                  child: Text(
-                                    'Crates: ${crateQuantity.toStringAsFixed(0)} = ${crateQuantity * 35}',
+                                if (_userRole == 'customer') ...[
+                                  SizedBox(height: size.height * 0.005),
+                                  Text(
+                                    'Crates: ${crateQuantity.toStringAsFixed(0)} = ₹${crateQuantity * 35}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge!
@@ -463,9 +466,10 @@ class _FirstPageState extends State<FirstPage> {
                                         ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                              ),
-                          ],
+                                ],
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       GestureDetector(
@@ -484,97 +488,129 @@ class _FirstPageState extends State<FirstPage> {
                             ),
                           );
                         },
-                        child: CircleAvatar(
-                          radius: size.width * 0.06,
-                          backgroundColor: const Color(0xFFFFFFFF),
-                          backgroundImage: _profileImageUrl != null &&
-                                  !_isLoadingProfileImage
-                              ? NetworkImage(_profileImageUrl!)
-                              : null,
-                          child:
-                              _profileImageUrl == null || _isLoadingProfileImage
-                                  ? Icon(
-                                      Icons.person,
-                                      color: const Color(0xFF757575),
-                                      size: size.width * 0.06,
-                                    )
-                                  : null,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: size.height * 0.01),
+                          child: CircleAvatar(
+                            radius: size.width * 0.06,
+                            backgroundColor: const Color(0xFFFFFFFF),
+                            backgroundImage: _profileImageUrl != null &&
+                                    !_isLoadingProfileImage
+                                ? NetworkImage(_profileImageUrl!)
+                                : null,
+                            child: _profileImageUrl == null ||
+                                    _isLoadingProfileImage
+                                ? Icon(
+                                    Icons.person,
+                                    color: const Color(0xFF757575),
+                                    size: size.width * 0.06,
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: size.height * 0.25,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: images.length,
-                    onPageChanged: (index) =>
-                        setState(() => _currentPage = index),
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: size.width * 0.04),
-                        child: Hero(
-                          tag: 'carousel-image-$index',
-                          child: ClipRRect(
-                            borderRadius:
-                                BorderRadius.circular(size.width * 0.04),
-                            child: Image.asset(
-                              images[index],
-                              fit: BoxFit.cover,
-                              width: size.width * 0.9,
-                              height: size.height * 0.25,
+                // Negative margin to overlap 20% of PageView with blue layout
+                Transform.translate(
+                  offset: Offset(0, -(size.height * 0.02 * 0.2)),
+                  child: SizedBox(
+                    height: size.height * 0.25, // Restored original size
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: images.length,
+                      onPageChanged: (index) =>
+                          setState(() => _currentPage = index),
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: size.width * 0.04),
+                          child: Hero(
+                            tag: 'carousel-image-$index',
+                            child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(size.width * 0.04),
+                              child: Image.asset(
+                                images[index],
+                                fit: BoxFit.cover,
+                                width: size.width * 0.9,
+                                height: size.height * 0.25,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-                SizedBox(height: size.height * 0.015),
+                SizedBox(height: size.height * 0.01),
                 _buildDotsIndicator(),
-                SizedBox(height: size.height * 0.03),
-                Row(
+                SizedBox(height: size.height * 0.015),
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        _userRole == 'wholesale'
-                            ? 'Wholesale Egg Rate In Bengaluru'
-                            : 'NECC Egg Rate In Bengaluru',
-                        textAlign: TextAlign.center,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    Text(
+                      _userRole == 'wholesale'
+                          ? 'Wholesale Egg Rate In'
+                          : 'NECC Egg Rate In',
+                      textAlign: TextAlign.center,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                fontWeight: FontWeight.w800,
+                                fontSize: size.width * 0.08,
+                                color: const Color(0xFF0288D1),
+                              ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: size.height * 0.005),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Bengaluru',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
                                   fontWeight: FontWeight.w800,
                                   fontSize: size.width * 0.08,
                                   color: const Color(0xFF0288D1),
                                 ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: size.width * 0.02),
-                    Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(size.width * 0.02),
-                      ),
-                      elevation: 4,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: size.width * 0.03,
-                            vertical: size.height * 0.02),
-                        child: Text(
-                          '₹${neccEggRate.toStringAsFixed(2)}', // Use neccEggRate
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: const Color.fromARGB(255, 0, 134, 224),
-                                fontSize: size.width * 0.04,
-                              ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
+                        SizedBox(width: size.width * 0.02),
+                        AnimatedScale(
+                          scale: neccEggRate > 1.0 ? 1.0 : 0.9,
+                          duration: const Duration(milliseconds: 200),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(size.width * 0.02),
+                            ),
+                            elevation: 4,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: size.width * 0.02,
+                                  vertical: size.height * 0.005),
+                              child: Text(
+                                '₹${neccEggRate.toStringAsFixed(2)}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color.fromARGB(
+                                          255, 0, 134, 224),
+                                      fontSize: size.width * 0.04,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -613,7 +649,7 @@ class _FirstPageState extends State<FirstPage> {
                         color: const Color(0xFF757575),
                       ),
                 ),
-                SizedBox(height: size.height * 0.03),
+                SizedBox(height: size.height * 0.015),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
                   child: Text.rich(
@@ -642,7 +678,7 @@ class _FirstPageState extends State<FirstPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(height: size.height * 0.04),
+                SizedBox(height: size.height * 0.02),
               ],
             ),
           ),

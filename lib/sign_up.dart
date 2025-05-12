@@ -566,18 +566,111 @@ class _SignUpPageState extends State<SignUpPage> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text("Terms & Conditions"),
-              content: const Text("Your terms and conditions here..."),
+              content: SingleChildScrollView(
+                // Ensure it is scrollable
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(fontSize: 12, color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text:
+                            'Terms and Conditions for Egg Distribution Services\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: 'Last Revised: [Date]\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: '1. Introduction\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text:
+                            '''These Terms and Conditions (“Agreement”) govern the provision of egg supply services ("Services") provided by HMS EGG DISTRIBUTIONS (“We”, “Us”, “Our”) to retail shop owners (“You”, “Customer”). By accepting and using our egg distribution services, You agree to comply with and be bound by these Terms and Conditions.\n\n''',
+                      ),
+                      TextSpan(
+                        text: '2. Egg Supply and Credit Terms\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: '''   a. Supply of Eggs  
+We will deliver eggs to Your retail shop as part of our regular supply cycle, which is typically every two (2) days (“Supply Cycle”). The amount of eggs provided will be based on prior agreements and Your demand.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '''   b. Credit Terms  
+We extend credit to You for the eggs supplied. The total amount due for each cycle of eggs provided must be paid within two (2) days from the delivery date, at which point the payment becomes due. This two-day period represents the credit window granted to You, which ends at midnight on the second day after the delivery of eggs.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '3. Repayment Failure and Legal Action\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: '''   a. Failure to Pay  
+If You fail to repay the amount owed by the due date (end of the second day after egg delivery), We may initiate legal actions to recover the outstanding amount. This could include, but is not limited to, sending reminders, engaging collection agencies, or pursuing claims through the legal system.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '''   b. Interest and Late Fees  
+If payment is not made within the specified credit period, We reserve the right to charge a late fee of 5% of the total purchased value for every overdue cycle. This late fee will be calculated on the total amount owed and added to the outstanding balance.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '4. Crates Provided for Egg Delivery\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: '''   a. Crates and Responsibility  
+We provide eggs in crates that remain Our property. It is Your responsibility to ensure the safe handling, use, and return of these crates. These crates are used exclusively for the transportation of eggs and must not be used for any other purpose.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '''   b. Crate Return  
+You must return the crates in good condition to Us by the time of the next egg delivery. If the crates are not returned or if they are damaged, You will be required to pay Us the full replacement value of each crate.  
+Crate Replacement Cost: 35 Rupees per crate.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '5. Liability and Damages\n\n',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: '''   a. Egg Handling and Quality  
+You are solely responsible for the proper handling, storage, and sale of the eggs once delivered. We are not liable for any damages to the eggs resulting from improper storage or handling on Your part.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '''   b. Damage to Goods  
+Claims regarding damaged goods must be made to Us within 24 hours of receiving the eggs. After this period, We will not accept any liability for damages, and it will be deemed that You have accepted the goods in good condition.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      TextSpan(
+                        text: '''   c. Force Majeure  
+We are not liable for any failure to perform our obligations under this Agreement if such failure is due to events outside of Our control, including but not limited to natural disasters, transport disruptions, strikes, or any unforeseen circumstances.\n\n''',
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                      // Continue adding other sections similarly...
+                    ],
+                  ),
+                ),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Close"),
+                  child: const Text(
+                    "Close",
+                    style: TextStyle(
+                        color: Colors.blue), // Color of the "Close" button
+                  ),
                 ),
               ],
             ),
           ),
           child: const Text(
             "Click Here to Accept Terms & Conditions",
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(color: Colors.red), // Color of the clickable text
           ),
         ),
       ],
