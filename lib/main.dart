@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hms_pro/home_page.dart';
-import 'package:hms_pro/reset_page.dart';
-import 'package:hms_pro/login_page.dart';
-import 'package:hms_pro/sign_up.dart';
+import 'package:EggPort/home_page.dart';
+import 'package:EggPort/reset_page.dart';
+import 'package:EggPort/login_page.dart';
+import 'package:EggPort/sign_up.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,11 +16,15 @@ Future<void> main() async {
   );
 
   final prefs = await SharedPreferences.getInstance();
-  final bool hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-
-  // Check if the user is already logged in
   final supabase = Supabase.instance.client;
   final isLoggedIn = supabase.auth.currentSession != null;
+
+  // If user is logged in, mark onboarding as seen
+  if (isLoggedIn) {
+    await prefs.setBool('hasSeenOnboarding', true);
+  }
+
+  final bool hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
   runApp(MyApp(
     hasSeenOnboarding: hasSeenOnboarding,
@@ -49,11 +53,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleDeepLink(Uri uri) {
-    print('Deep link received: $uri'); // For debugging
-    // Match both "reset-password" and "auth/reset-password"
+    print('Deep link received: $uri');
     if (uri.path.contains('reset-password')) {
       final token = uri.queryParameters['token'];
-      print('Token: $token'); // For debugging
+      print('Token: $token');
       if (token != null) {
         Navigator.pushNamed(
           context,
@@ -66,7 +69,7 @@ class _MyAppState extends State<MyApp> {
         );
       }
     } else {
-      print('Deep link path does not match: ${uri.path}'); // For debugging
+      print('Deep link path does not match: ${uri.path}');
     }
   }
 
@@ -79,9 +82,7 @@ class _MyAppState extends State<MyApp> {
         fontFamily: 'Roboto',
         primarySwatch: Colors.blue,
       ),
-      initialRoute: widget.isLoggedIn
-          ? '/home'
-          : (widget.hasSeenOnboarding ? '/login' : '/'),
+      initialRoute: widget.isLoggedIn ? '/home' : '/login',
       routes: {
         '/': (context) => const PageOne(),
         '/page-two': (context) => const PageTwo(),
@@ -277,10 +278,8 @@ class PageFour extends StatelessWidget {
   const PageFour({super.key});
 
   Future<void> _completeOnboarding(BuildContext context) async {
-    // Set the onboarding flag to true
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenOnboarding', true);
-    // Navigate to LoginPage
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -356,12 +355,10 @@ class _CompleteResetPasswordPageState extends State<CompleteResetPasswordPage> {
 
     setState(() => _isLoading = true);
     try {
-      // Verify the OTP token
       await Supabase.instance.client.auth.verifyOTP(
         type: OtpType.recovery,
         token: token!,
       );
-      // Update the password
       await Supabase.instance.client.auth
           .updateUser(UserAttributes(password: newPassword));
       ScaffoldMessenger.of(context).showSnackBar(

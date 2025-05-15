@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hms_pro/home_page.dart';
-import 'package:hms_pro/widgets/custom_background.dart';
+import 'package:EggPort/home_page.dart';
+import 'package:EggPort/widgets/custom_background.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -33,9 +33,9 @@ class _FirstPageState extends State<FirstPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   double eggRate = 1.0;
-  double neccEggRate = 1.0; // Initialize for animation
+  double neccEggRate = 1.0;
   double targetRate = 4.7;
-  double targetNeccRate = 4.7; // Target for necc_eggrate animation
+  double targetNeccRate = 4.7;
   String? _profileImageUrl;
   bool _isLoadingProfileImage = true;
   DateTime? _lastUpdated;
@@ -103,7 +103,7 @@ class _FirstPageState extends State<FirstPage> {
         _loadEggRate(),
         _loadNeccEggRate(),
         _loadCreditData(),
-        if (_userRole == 'customer') _loadCrateQuantity(),
+        _loadCrateQuantity(),
       ]);
     } catch (e) {
       print('Error loading user role or data: $e');
@@ -127,17 +127,43 @@ class _FirstPageState extends State<FirstPage> {
         return;
       }
 
-      final response = await _supabase
-          .from('crates')
-          .select('quantity')
-          .eq('user_id', userId)
-          .maybeSingle();
+      print('User role: $_userRole, User ID: $userId');
 
-      setState(() {
-        crateQuantity = response != null && response['quantity'] != null
-            ? response['quantity'].toDouble()
-            : 0.0;
-      });
+      if (_userRole == 'wholesale') {
+        print('Fetching from wholesale_crates for wholesale_user_id: $userId');
+        final response = await _supabase
+            .from('wholesale_crates')
+            .select('quantity')
+            .eq('wholesale_user_id', userId)
+            .order('updated_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
+
+        print('Wholesale crates response: $response');
+
+        setState(() {
+          crateQuantity = response != null && response['quantity'] != null
+              ? response['quantity'].toDouble()
+              : 0.0;
+          print('Wholesale crate quantity set to: $crateQuantity');
+        });
+      } else {
+        print('Fetching from crates for user_id: $userId');
+        final response = await _supabase
+            .from('crates')
+            .select('quantity')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        print('Customer crates response: $response');
+
+        setState(() {
+          crateQuantity = response != null && response['quantity'] != null
+              ? response['quantity'].toDouble()
+              : 0.0;
+          print('Customer crate quantity set to: $crateQuantity');
+        });
+      }
     } catch (e) {
       print('Error fetching crate quantity: $e');
       setState(() {
@@ -347,7 +373,7 @@ class _FirstPageState extends State<FirstPage> {
       _loadEggRate(),
       _loadNeccEggRate(),
       _loadCreditData(),
-      if (_userRole == 'customer') _loadCrateQuantity(),
+      _loadCrateQuantity(),
     ]);
   }
 
@@ -452,21 +478,19 @@ class _FirstPageState extends State<FirstPage> {
                                       ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (_userRole == 'customer') ...[
-                                  SizedBox(height: size.height * 0.005),
-                                  Text(
-                                    'Crates: ${crateQuantity.toStringAsFixed(0)} = ₹${crateQuantity * 35}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: const Color(0xFF0288D1),
-                                          fontSize: size.width * 0.04,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                SizedBox(height: size.height * 0.005),
+                                Text(
+                                  'Crates: ${crateQuantity.toStringAsFixed(0)} = ₹${(crateQuantity * 35).toStringAsFixed(2)}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF0288D1),
+                                        fontSize: size.width * 0.04,
+                                      ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ],
                             ),
                           ),
@@ -511,11 +535,10 @@ class _FirstPageState extends State<FirstPage> {
                     ],
                   ),
                 ),
-                // Negative margin to overlap 20% of PageView with blue layout
                 Transform.translate(
                   offset: Offset(0, -(size.height * 0.02 * 0.2)),
                   child: SizedBox(
-                    height: size.height * 0.25, // Restored original size
+                    height: size.height * 0.25,
                     child: PageView.builder(
                       controller: _pageController,
                       itemCount: images.length,

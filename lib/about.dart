@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/custom_background.dart';
@@ -12,58 +13,58 @@ class AboutPage extends StatelessWidget {
       body: CustomBackground(
         child: Stack(
           children: [
-            // Scrollable content
+            // Fixed content
             SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start, // Align content to the left
-                  children: [
-                    Padding(
-                      padding:
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Align content to the left
+                children: [
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: size.width * 0.04),
+                    child: Text(
+                      "About Us.",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.02),
+                  Hero(
+                    tag: 'about-image',
+                    child: Container(
+                      margin:
                           EdgeInsets.symmetric(horizontal: size.width * 0.04),
-                      child: Text(
-                        "About Us.",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),
+                      constraints: BoxConstraints(
+                        maxWidth: size.width * 0.9,
+                        maxHeight: size.height * 0.3,
                       ),
-                    ),
-                    SizedBox(height: size.height * 0.02),
-                    Hero(
-                      tag: 'about-image',
-                      child: Container(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: size.width * 0.04),
-                        constraints: BoxConstraints(
-                          maxWidth: size.width * 0.9,
-                          maxHeight: size.height * 0.3,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.asset(
-                            'assets/image.png',
-                            fit: BoxFit.cover,
-                            width: size.width * 0.9,
-                            height: size.height * 0.3,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/about1.png',
+                          fit: BoxFit.cover,
+                          width: size.width * 0.9,
+                          height: size.height * 0.3,
                         ),
                       ),
                     ),
-                    SizedBox(height: size.height * 0.03),
-                    Padding(
+                  ),
+                  SizedBox(height: size.height * 0.03),
+                  Expanded(
+                    child: Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: size.width * 0.04),
                       child: Text.rich(
@@ -77,9 +78,25 @@ class AboutPage extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const TextSpan(
+                            TextSpan(
                               text:
-                                  ", your trusted source for premium-quality eggs. Founded with a passion for delivering freshness and flavor to every table, we are dedicated to providing our customers with the best eggs available.",
+                                  ", your trusted source for premium-quality eggs. ",
+                            ),
+                            TextSpan(
+                              text:
+                                  "Founded with a passion for delivering freshness and consistency, we are committed to supplying businesses and retailers with the finest eggs available — ensuring quality in every tray. ",
+                            ),
+                            TextSpan(
+                              text: "Visit us at hmsegg.com",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  launchUrl(Uri.parse("https://hmsegg.com"));
+                                },
                             ),
                           ],
                           style: Theme.of(context).textTheme.bodyLarge,
@@ -87,11 +104,10 @@ class AboutPage extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    SizedBox(height: size.height * 0.04),
-                    // Extra space to prevent content from being obscured by fixed complaint box
-                    SizedBox(height: size.height * 0.25),
-                  ],
-                ),
+                  ),
+                  // Extra space to prevent content from being obscured by fixed complaint box
+                  SizedBox(height: size.height * 0.25),
+                ],
               ),
             ),
             // Fixed Complaint Box
@@ -163,7 +179,7 @@ class AboutPage extends StatelessWidget {
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: size.width * 0.03,
-                          vertical: size.height * 0.01,
+                          vertical: size.height * 0.000001,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
