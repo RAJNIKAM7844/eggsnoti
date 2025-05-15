@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Replace these with your actual page imports
 import 'package:EggPort/home_page.dart';
 import 'package:EggPort/reset_page.dart';
 import 'package:EggPort/login_page.dart';
 import 'package:EggPort/sign_up.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +32,27 @@ Future<void> main() async {
     hasSeenOnboarding: hasSeenOnboarding,
     isLoggedIn: isLoggedIn,
   ));
+}
+
+// Slide Transition Function
+Route createSlideTransition(Widget page) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0); // Slide from right
+      const end = Offset.zero;
+      const curve = Curves.easeInOut;
+
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      var offsetAnimation = animation.drive(tween);
+
+      return SlideTransition(
+        position: offsetAnimation,
+        child: child,
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -82,20 +105,41 @@ class _MyAppState extends State<MyApp> {
         fontFamily: 'Roboto',
         primarySwatch: Colors.blue,
       ),
-      initialRoute: widget.isLoggedIn ? '/home' : '/login',
-      routes: {
-        '/': (context) => const PageOne(),
-        '/page-two': (context) => const PageTwo(),
-        '/page-three': (context) => const PageThree(),
-        '/page-four': (context) => const PageFour(),
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignUpPage(),
-        '/home': (context) => const HomePage(),
-        '/reset': (context) => const ResetPasswordPage(),
-        '/complete-reset': (context) => CompleteResetPasswordPage(
-              token: ModalRoute.of(context)!.settings.arguments
-                  as Map<String, String>,
-            ),
+      initialRoute: widget.hasSeenOnboarding
+          ? (widget.isLoggedIn ? '/home' : '/login')
+          : '/',
+      onGenerateRoute: (settings) {
+        Widget page;
+        switch (settings.name) {
+          case '/':
+            page = const PageOne();
+            break;
+          case '/page-two':
+            page = const PageTwo();
+            break;
+          case '/page-three':
+            page = const PageThree();
+            break;
+          case '/page-four':
+            page = const PageFour();
+            break;
+          case '/login':
+            page = const LoginPage();
+            break;
+          case '/signup':
+            page = const SignUpPage();
+            break;
+          case '/home':
+            page = const HomePage();
+            break;
+          case '/reset':
+            page = const ResetPasswordPage();
+            break;
+
+          default:
+            page = const PageOne();
+        }
+        return createSlideTransition(page);
       },
     );
   }
@@ -111,17 +155,27 @@ class PageOne extends StatefulWidget {
 
 class _PageOneState extends State<PageOne> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late Animation<double> _translateAnimation;
+  late Animation<double> _rotateAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: -10.0, end: 10.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: false);
+    _translateAnimation = Tween<double>(
+      begin: -150.0,
+      end: 150.0,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.linear),
+    );
+    _rotateAnimation = Tween<double>(
+      begin: 0,
+      end: 2 * 3.14159,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.linear),
     );
   }
 
@@ -133,35 +187,63 @@ class _PageOneState extends State<PageOne> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, '/page-two');
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(_animation.value, 0),
-                    child: Image.asset('assets/egg.png', width: 150),
-                  );
-                },
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                "HMS EGG DISTRIBUTIONS",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+    return WillPopScope(
+      onWillPop: () async => false, // Prevent back button from exiting
+      child: GestureDetector(
+        onTap: () {
+          Navigator.pushReplacementNamed(context, '/page-two');
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(_translateAnimation.value, 0),
+                      child: Transform.rotate(
+                        angle: _rotateAnimation.value,
+                        child: Image.asset('assets/egg.png', width: 150),
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 30),
+                const Text(
+                  "HMS EGG DISTRIBUTIONS",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, '/page-two');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Get Started',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -175,52 +257,55 @@ class PageTwo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            margin: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: const Color.fromARGB(255, 51, 51, 51),
-                width: 3,
+    return WillPopScope(
+      onWillPop: () async => false, // Prevent back button from going back
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: const Color.fromARGB(255, 51, 51, 51),
+                  width: 3,
+                ),
+              ),
+              child: Image.asset('assets/image2.png', fit: BoxFit.cover),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Text(
+                "Welcome to HMS EGG DISTRIBUTORS",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
             ),
-            child: Image.asset('assets/image2.png', fit: BoxFit.cover),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Text(
-              "Welcome to HMS EGG DISTRIBUTORS",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                "At HMS, we deliver only the finest quality eggs with a strong commitment to excellence and customer satisfaction.",
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 17,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              "At HMS, we deliver only the finest quality eggs with a strong commitment to excellence and customer satisfaction.",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 17,
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 25),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/page-three');
+              },
+              child: const Text("CONTINUE"),
             ),
-          ),
-          const SizedBox(height: 25),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/page-three');
-            },
-            child: const Text("CONTINUE"),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -232,42 +317,45 @@ class PageThree extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            margin: const EdgeInsets.all(20),
-            child: Image.asset('assets/image3.png', fit: BoxFit.cover),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Text(
-              "Trusted & Nutritious Eggs",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+    return WillPopScope(
+      onWillPop: () async => false, // Prevent back button from going back
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(20),
+              child: Image.asset('assets/image3.png', fit: BoxFit.cover),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Text(
+                "Trusted & Nutritious Eggs",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              "We ensure freshness, hygiene, and nutritional value with every egg we deliver. Choose from a wide range of organic, free-range, and specialty eggs!",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-              textAlign: TextAlign.center,
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                "We ensure freshness, hygiene, and nutritional value with every egg we deliver. Choose from a wide range of organic, free-range, and specialty eggs!",
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          const SizedBox(height: 25),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/page-four');
-            },
-            child: const Text("CONTINUE"),
-          ),
-        ],
+            const SizedBox(height: 25),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/page-four');
+              },
+              child: const Text("CONTINUE"),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -280,201 +368,56 @@ class PageFour extends StatelessWidget {
   Future<void> _completeOnboarding(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenOnboarding', true);
-    Navigator.pushReplacementNamed(context, '/login');
+    // Clear the entire navigation stack and go to login
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/login',
+      (route) => false, // Remove all previous routes
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            margin: const EdgeInsets.all(20),
-            child: Image.asset('assets/image4.png', fit: BoxFit.cover),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Text(
-              "Why Choose HMS?",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+    return WillPopScope(
+      onWillPop: () async => false, // Prevent back button from going back
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(20),
+              child: Image.asset('assets/image4.png', fit: BoxFit.cover),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Text(
+                "Why Choose HMS?",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              "• Fast Delivery\n• Affordable Pricing\n• 100% Fresh Eggs\n• Trusted by 500+ customers",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                "• Fast Delivery\n• Affordable Pricing\n• 100% Fresh Eggs\n• Trusted by 500+ customers",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => _completeOnboarding(context),
-            child: const Text("GET STARTED"),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// New page to complete password reset
-class CompleteResetPasswordPage extends StatefulWidget {
-  final Map<String, String> token;
-
-  const CompleteResetPasswordPage({super.key, required this.token});
-
-  @override
-  State<CompleteResetPasswordPage> createState() =>
-      _CompleteResetPasswordPageState();
-}
-
-class _CompleteResetPasswordPageState extends State<CompleteResetPasswordPage> {
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
-
-  Future<void> _completeResetPassword() async {
-    final newPassword = _newPasswordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
-    final token = widget.token['token'];
-
-    if (!_validateInput(newPassword, confirmPassword)) {
-      return;
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      await Supabase.instance.client.auth.verifyOTP(
-        type: OtpType.recovery,
-        token: token!,
-      );
-      await Supabase.instance.client.auth
-          .updateUser(UserAttributes(password: newPassword));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated successfully!')),
-      );
-      if (mounted) Navigator.pushReplacementNamed(context, '/login');
-    } on AuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.message}')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: An unexpected error occurred')),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  bool _validateInput(String newPassword, String confirmPassword) {
-    if (newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return false;
-    }
-    if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
-      return false;
-    }
-    if (newPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
-      );
-      return false;
-    }
-    return true;
-  }
-
-  @override
-  void dispose() {
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Complete Password Reset')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Set New Password',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  'Enter your new password below',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                const SizedBox(height: 30),
-                _buildTextField(Icons.lock, 'New Password',
-                    controller: _newPasswordController, obscureText: true),
-                const SizedBox(height: 16),
-                _buildTextField(Icons.lock, 'Confirm Password',
-                    controller: _confirmPasswordController, obscureText: true),
-                const SizedBox(height: 25),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: Colors.black,
-                  ),
-                  onPressed: _isLoading ? null : _completeResetPassword,
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Update Password',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                ),
-              ],
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _completeOnboarding(context),
+              child: const Text("GET STARTED"),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(IconData icon, String hint,
-      {required TextEditingController controller, bool obscureText = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: SizedBox(
-        height: 50,
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.grey),
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.grey[200],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 15),
-          ),
+          ],
         ),
       ),
     );
