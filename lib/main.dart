@@ -1,12 +1,12 @@
+import 'package:EggPort/home_page.dart';
+import 'package:EggPort/login_page.dart';
+import 'package:EggPort/reset_page.dart';
+import 'package:EggPort/sign_up.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Replace these with your actual page imports
-import 'package:EggPort/home_page.dart';
-import 'package:EggPort/reset_page.dart';
-import 'package:EggPort/login_page.dart';
-import 'package:EggPort/sign_up.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +16,10 @@ Future<void> main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3b3hocHp0a3h6cWV0d2FubHh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxMjQyMTAsImV4cCI6MjA2MDcwMDIxMH0.jEIMSnX6-uEA07gjnQKdEXO20Zlpw4XPybfeLQr7W-M',
   );
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('Flutter error: ${details.exceptionAsString()}');
+    print(details.stack);
+  };
 
   final prefs = await SharedPreferences.getInstance();
   final supabase = Supabase.instance.client;

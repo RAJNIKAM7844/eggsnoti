@@ -1,6 +1,6 @@
 {
-    "name": "hms_pro",
-    "short_name": "hms_pro",
+    "name": "EggPort",
+    "short_name": "EggPort",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

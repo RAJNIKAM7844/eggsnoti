@@ -1,4 +1,4 @@
-package com.example.hms_pro
+package com.hmsegg.eggport
 
 import io.flutter.embedding.android.FlutterActivity
 

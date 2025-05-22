@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "hms_pro" "\0"
+            VALUE "FileDescription", "EggPort" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "hms_pro" "\0"
+            VALUE "InternalName", "EggPort" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "hms_pro.exe" "\0"
-            VALUE "ProductName", "hms_pro" "\0"
+            VALUE "OriginalFilename", "EggPort.exe" "\0"
+            VALUE "ProductName", "EggPort" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
