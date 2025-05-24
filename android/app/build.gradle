@@ -28,8 +28,8 @@ android {
         applicationId "com.hmsegg.eggport"
         minSdk 21
         targetSdk 35
-        versionCode 5
-        versionName "1.0.5"
+        versionCode 9
+        versionName "1.0.9"
         multiDexEnabled true
     }
 
@@ -68,4 +68,7 @@ flutter {
 dependencies {
     implementation "androidx.multidex:multidex:2.0.1"
     implementation "com.google.android.gms:play-services-auth:21.0.0" // Required for google_sign_in
+    implementation platform('com.google.firebase:firebase-bom:33.2.0')
+    implementation 'com.google.firebase:firebase-messaging'
 }
+apply plugin: 'com.google.gms.google-services'

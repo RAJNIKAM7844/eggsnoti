@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "54391127653",
+    "project_id": "hmseggs3",
+    "storage_bucket": "hmseggs3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54391127653:android:a448222aefa15bdda9508c",
+        "android_client_info": {
+          "package_name": "com.hmsegg.eggport"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54391127653-4mavu1m1eqvm96bqtrbike983qc38ev8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hmsegg.eggport",
+            "certificate_hash": "e8e4db58efff7b95fabf11c516cfc7ad803df4b9"
+          }
+        },
+        {
+          "client_id": "54391127653-s3nsu1769f7mqo8srdhdhm2r7fnqso1a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw3ewBCRnV8JrLGwAxgRn1niwLmZEH_7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54391127653-s3nsu1769f7mqo8srdhdhm2r7fnqso1a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

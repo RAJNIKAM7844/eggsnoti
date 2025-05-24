@@ -1,7 +1,9 @@
 import 'package:EggPort/home_page.dart';
 import 'package:EggPort/login_page.dart';
+import 'package:EggPort/notifaction_service.dart';
 import 'package:EggPort/reset_page.dart';
 import 'package:EggPort/sign_up.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,6 +12,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Initialize Firebase
+  await NotificationService.instance.initialize();
   // Initialize Supabase
   await Supabase.initialize(
     url: 'https://kwoxhpztkxzqetwanlxx.supabase.co',
